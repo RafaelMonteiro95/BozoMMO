@@ -76,7 +76,7 @@ public class Client {
 			//usada para guardar as msgs recebidas do servidor
 			String msg = null;
 			//envio a mensagem inicial
-			response = "I 93920";
+			response = "I 9392095";
 			clientOut.println(response);
 			// DEBUG
 			System.out.println("SENDING '" + response + "'");
@@ -106,7 +106,7 @@ public class Client {
 				
 				// DEBUG
 				System.out.println("PRESS ENTER TO PLAY NEXT ROUND");
-				sc.nextLine();
+//				sc.nextLine();
 
 				/* Call next round (R <round number>) */
 				response = "R" + (i+1);
@@ -121,7 +121,7 @@ public class Client {
 				msg = clientIn.nextLine();
 				// DEBUG
 				System.out.println("RECEIVED '" + msg + "'");
-				canonicalMsg = canonicalize(msg);
+				canonicalMsg = msg;
 
 				/* Reroll dice (T <dice vector>) [reroll twice]
 				input:		1 2 3 4 5
@@ -140,7 +140,7 @@ public class Client {
 				msg = clientIn.nextLine();
 				// DEBUG
 				System.out.println("RECEIVED '" + msg + "'");
-				canonicalMsg = canonicalize(msg);
+				canonicalMsg = msg;
 				reroll = format(rerollDice(canonicalMsg, playedPos));
 				response = "T " + reroll;
 				clientOut.println(response);
@@ -156,9 +156,10 @@ public class Client {
 				// DEBUG
 				System.out.println("RECEIVED '" + msg + "'");
 
-				canonicalMsg = canonicalize(msg);
+				canonicalMsg = msg;
 				pos = calculatePosition(playedPos, canonicalMsg);
-				printvector(playedPos, "playedPos");
+                                if(pos < 0) pos = findUnnusedPos(playedPos);
+//				printvector(playedPos, "playedPos");
 				response = "P"+(i+1) + " " + (pos+1);
 				clientOut.println(response);
 				playedPos[pos] = true;	// Update played positions
@@ -198,6 +199,12 @@ public class Client {
 			}
 		}
 	}
+        
+        private static int findUnnusedPos(boolean[] playedPos){
+            int i = 0;
+            for(i = 0; i < 10; i++) if(!playedPos[i])break; 
+            return i;
+        }
 
 	private static String canonicalize(String msg){
 		msg = msg.replace(",", "");
