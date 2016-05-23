@@ -47,6 +47,17 @@ public class RolaDados {
     }
     
     /**
+     *
+     * @return
+     */
+    public String getStringDados(){
+        String s = "";
+        for(int i = 0; i < ndados; i++)
+            s += dados_array[i].getLado() + " ";
+        return s;
+    }
+    
+    /**
      * Rola alguns dos dados.
      * @param quais É um array de booleanos que indica quais dados devem ser rolados. Cada posição representa um dos dados. Ou seja, a posição 0 do array indica se o dado 1 deve ser rolado ou não, e assim por diante
      * @return Retorna o valor de cada um dos dados, inclusive os que não foram rolados. Nesse caso, o valor retornado é o valor anterior que ele já possuia.
