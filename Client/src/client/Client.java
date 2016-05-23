@@ -1,7 +1,6 @@
 package client;
 
 import java.io.*;
-import java.lang.*;
 import java.util.*;
 import java.net.*;
 
@@ -31,6 +30,7 @@ public class Client {
 
 		// Game variables
 		int pos;
+                String id;
 		String score;
 		boolean[] playedPos = new boolean[10];
 		String reroll;
@@ -42,13 +42,12 @@ public class Client {
 		String response = null;
 		Socket s = null;
 
-		// DEBUG
-		ip = "127.0.0.1";
-		port = 80;
-		// System.out.println("Entre com o ip do servidor: ");
-		// ip = sc.nextLine();
-		// System.out.println("Entre com a porta de comunicacao: ");
-		// port = sc.nextInt();
+                System.out.println("Entre com o seu ID: ");
+                id = sc.nextLine();
+                System.out.println("Entre com o ip do servidor: ");
+                ip = sc.nextLine();
+                System.out.println("Entre com a porta de comunicacao: ");
+                port = sc.nextInt();
 
 
 		while(flag){
@@ -62,7 +61,7 @@ public class Client {
 				System.out.println("\tport: " + port);
 				System.out.println("Error: " + e);
 				System.out.println("Saindo...");
-				System.exit(1);
+				System.exit(0);
 			}
 		
 			System.out.println("Conectado no servidor!");
@@ -76,10 +75,8 @@ public class Client {
 			//usada para guardar as msgs recebidas do servidor
 			String msg = null;
 			//envio a mensagem inicial
-			response = "I 9392095";
+			response = "I " + id;
 			clientOut.println(response);
-			// DEBUG
-			System.out.println("SENDING '" + response + "'");
 
 			String dbg_msg = null;
 			if(clientIn.hasNextLine()) {
@@ -103,49 +100,23 @@ public class Client {
 
 			// 10 rounds
 			for(int i = 0; i < 10; i++){
-				
-				// DEBUG
-				System.out.println("PRESS ENTER TO PLAY NEXT ROUND");
-//				sc.nextLine();
 
 				/* Call next round (R <round number>) */
 				response = "R" + (i+1);
 				clientOut.println(response);
-				// DEBUG
-				System.out.println("SENDING '" + response + "'");
 
-				/* Parse dice vector 
-				input from server:	[1, 2, 3, 4, 5] 
-				function output:		1 2 3 4 5
-				*/
 				msg = clientIn.nextLine();
-				// DEBUG
-				System.out.println("RECEIVED '" + msg + "'");
-				canonicalMsg = msg;
-
-				/* Reroll dice (T <dice vector>) [reroll twice]
-				input:		1 2 3 4 5
-				function: 	0 0 1 0 0 (send to server)
-				output:		1 2 2 4 5
-				*/
 
 				// format converts boolean 'true' and 'false' strings 
 				// to 1 or 0 characters respectively
-				reroll = format(rerollDice(canonicalMsg, playedPos));
+				reroll = format(rerollDice(msg, playedPos));
 				response = "T " + reroll;
 				clientOut.println(response);
-				// DEBUG
-				System.out.println("SENDING '" + response + "'");
 
 				msg = clientIn.nextLine();
-				// DEBUG
-				System.out.println("RECEIVED '" + msg + "'");
-				canonicalMsg = msg;
-				reroll = format(rerollDice(canonicalMsg, playedPos));
+				reroll = format(rerollDice(msg, playedPos));
 				response = "T " + reroll;
 				clientOut.println(response);
-				// DEBUG
-				System.out.println("SENDING '" + response + "'");
 				
 				
 				/* Find score position (P <n> <pos>)
@@ -153,18 +124,13 @@ public class Client {
 				pos = 3 (send to server)
 				*/
 				msg = clientIn.nextLine();
-				// DEBUG
-				System.out.println("RECEIVED '" + msg + "'");
-
-				canonicalMsg = msg;
-				pos = calculatePosition(playedPos, canonicalMsg);
+				pos = calculatePosition(playedPos, msg);
                                 if(pos < 0) pos = findUnnusedPos(playedPos);
-//				printvector(playedPos, "playedPos");
+                                //sends the found position
 				response = "P"+(i+1) + " " + (pos+1);
 				clientOut.println(response);
+                                
 				playedPos[pos] = true;	// Update played positions
-				// DEBUG
-				System.out.println("SENDING '" + response + "'");
 
 				score = clientIn.nextLine();
 				System.out.println("Scored " + score + " points");
@@ -173,8 +139,6 @@ public class Client {
 			/* Finalize connection (F) */
 			response = "F";
 			clientOut.println(response);
-			// DEBUG
-			System.out.println("SENDING '" + response + "'");
 			
 
 			//leio mensagem do servidor
@@ -183,15 +147,12 @@ public class Client {
 				try{
 					response = clientIn.nextLine();
 					// DEBUG
-					System.out.println("RECEIVED '" + response + "'");
+					System.out.println(response);
 				} catch (Exception e){
 					System.out.println("Connection closed");
-					System.out.println("Error message: " + e);
 					flag = false;
 					break;
 				}
-
-				System.out.println(response);
 				
 				//se a resposta for "Bye", paro de me comunicar
 				if(response.equals("Bye"))
@@ -206,13 +167,6 @@ public class Client {
             return i;
         }
 
-	private static String canonicalize(String msg){
-		msg = msg.replace(",", "");
-		msg = msg.replace("[", "");
-		msg = msg.replace("]", "");
-		return msg;
-	}
-
 	private static int[] canonicalRepToInt(String canonicalMsg){
 		
 		int[] dice = new int[5];
@@ -222,21 +176,6 @@ public class Client {
 			dice[i] = canonicalMsg.charAt(2*i) - '0';
 
 		return dice;
-	}
-
-	// DEBUG
-	private static void printvector(int[] v, String name){
-		
-		System.out.printf("\t[DEBUG] %s[]:", name);
-		for (int i = 0; i < v.length; i++) System.out.printf(" %d", v[i]);
-		System.out.println("");
-	}
-	// DEBUG
-	private static void printvector(boolean[] v, String name){
-		
-		System.out.printf("\t[DEBUG] %s[]:", name);
-		for (int i = 0; i < v.length; i++) System.out.printf(" %b", v[i]);
-		System.out.println("");
 	}
 
 	private static boolean[] rerollDice(String canonicalMsg, boolean[] playedPos){
