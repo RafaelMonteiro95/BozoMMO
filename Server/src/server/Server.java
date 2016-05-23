@@ -5,6 +5,8 @@ import java.net.*;
 import java.util.*;
 
 import bozo.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Classe que representa um servidor
@@ -59,19 +61,29 @@ public class Server {
                     client = ss.accept();
                     nclients++;
                 } catch(Exception e){
-                    System.out.println("Connection error: " + e);
-                    return;
+                    continue;
                 }
 
                 //disparo uma thread do servidor (que joga bozo com o cliente)
                 ServerThread st = new ServerThread(client, this);
                 st.start();
             }
-                
+            
             try {
-                Thread.sleep(1000l);
+                Thread.sleep(500l);
             } catch (InterruptedException ex) {}
             
+            System.out.println("Final Results:");
+            for(Map.Entry<String,Player> entry : players.entrySet()){
+                System.out.println("");
+                System.out.println("ID: " + entry.getKey());
+                System.out.println("Total Score: " + entry.getValue().getScore());
+                System.out.println("Play Count: " + entry.getValue().getPC());
+                System.out.println("Avg Score: " + (entry.getValue().getScore()/entry.getValue().getPC()));
+                System.out.println("");
+            }
+            
+            System.out.println("Winner results:");
             System.out.println("Top Player: " + this.players.get(this.players.lastKey()).getId());
             System.out.println("Score: " + this.players.get(this.players.lastKey()).getScore());
             System.out.println("Play count: " + this.players.get(this.players.lastKey()).getPC());
